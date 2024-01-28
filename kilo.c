@@ -1,3 +1,5 @@
+# include <ctype.h>
+# include <stdio.h>
 # include <stdlib.h>
 # include <termios.h>
 # include <unistd.h>
@@ -19,7 +21,7 @@ void disableRawMode() {
 void enableRawMode() {
     // get terminal attributes and assign them to the original termios struct
     tcgetattr(STDIN_FILENO, &orig_termios);
-    
+
     // revert to original at exit
     atexit(disableRawMode);
 
@@ -45,7 +47,7 @@ void enableRawMode() {
 
 int main() {
     enableRawMode();
-    
+
     /**
      * Listen for key press events from the user.
      * Read 1 byte from the standard input into char c until the end of the standard input (file)?
@@ -53,6 +55,15 @@ int main() {
      * (ie: they will only be read after pressing ENTER, like terminal commands)
     */
     char c;
-    while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q'); // q to quit
+    while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q') { // q to quit
+        /**
+         * Display ASCII values and character representations (if printable) for key presses.
+        */
+        if (iscntrl(c)) { // test if `c` is a control character (ie: non-printable characters like ESC, BACKSPACE, TAB, ENTER/RETURN)
+            printf("%d\n", c); // %d formats to decimal
+        } else {
+            printf("%d ('%c')\n", c, c); // %c outputs the byte directly as a character
+        }
+    }
     return 0;
 }
