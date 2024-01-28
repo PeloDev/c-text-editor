@@ -85,6 +85,11 @@ void enableRawMode() {
     */
     raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG); // `~` is bitwise NOT operator
 
+    // min number of bytes of input needed before `read()` can return (0 will return immediatly)
+    raw.c_cc[VMIN] = 0;
+    // max time to wait before `read()` can return (1 = 100ms)
+    raw.c_cc[VTIME] = 1;
+
     // set the terminal attributes with the new value (TCSAFLUSH -> apply this after all pending outputs are written to the terminal, and discard unread inputs)
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
@@ -98,8 +103,9 @@ int main() {
      * Keyboard inputs will get read into char c in "canonical/cooked mode" 
      * (ie: they will only be read after pressing ENTER, like terminal commands)
     */
-    char c;
-    while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q') { // q to quit
+    while (1) {
+        char c = '\0';
+        read(STDIN_FILENO, &c, 1);
         /**
          * Display ASCII values and character representations (if printable) for key presses.
         */
@@ -108,6 +114,7 @@ int main() {
         } else {
             printf("%d ('%c')\r\n", c, c); // %c outputs the byte directly as a character
         }
+        if (c == 'q') break; // q to quit
     }
     return 0;
 }
