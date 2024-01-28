@@ -29,14 +29,29 @@ void enableRawMode() {
     struct termios raw = orig_termios;
 
     /**
-     * (IXON) Disable signals which stop and start data transmission to the terminal
+     * Notes:
      * - c_iflag is for input flags
      * 
+     * (IXON) Disable signals which stop and start data transmission to the terminal
+     * 
      * (ICRNL) prevent translation of carriage returns (CR) (13, '\r') into newlines (10, '\n')
-     * - This is applicable to both ENTER/RETURN and Ctrl+M interestingly enough.
+     * - This is applicable to both ENTER/RETURN and Ctrl+M curiosly enough.
      * - (10, '\n') is what Ctrl+J will output.
     */
     raw.c_iflag &= ~(ICRNL | IXON);
+
+
+    /**
+     * Notes:
+     * - c_oflag is for output flags
+     * 
+     * (OPOST) Disable translation of "\r" and "\n" to "\r\n"
+     * - Interstingly these are both distinct commands,
+     *   - "\r" is a "carriage return" which moves the cursor to the beggining of the line,
+     *   - "\n" is the very familiar newline command which moves the cursor down one line,
+     *   - the distinction of both these commands were relevant in the days of typewriters and "teletypes".
+    */
+    raw.c_oflag &= ~(OPOST);
 
     /**
      * Notes:
@@ -78,9 +93,9 @@ int main() {
          * Display ASCII values and character representations (if printable) for key presses.
         */
         if (iscntrl(c)) { // test if `c` is a control character (ie: non-printable characters like ESC, BACKSPACE, TAB, ENTER/RETURN)
-            printf("%d\n", c); // %d formats to decimal
+            printf("%d\r\n", c); // %d formats to decimal
         } else {
-            printf("%d ('%c')\n", c, c); // %c outputs the byte directly as a character
+            printf("%d ('%c')\r\n", c, c); // %c outputs the byte directly as a character
         }
     }
     return 0;
