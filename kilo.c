@@ -34,11 +34,13 @@ void enableRawMode() {
      * 
      * (IXON) Disable signals which stop and start data transmission to the terminal
      * 
-     * (ICRNL) prevent translation of carriage returns (CR) (13, '\r') into newlines (10, '\n')
+     * (ICRNL) Prevent translation of carriage returns (CR) (13, '\r') into newlines (10, '\n')
      * - This is applicable to both ENTER/RETURN and Ctrl+M curiosly enough.
      * - (10, '\n') is what Ctrl+J will output.
+     * 
+     * (BRKINT | INPCK | ISTRIP) Disable misc flags that probably have no visible effect on your terminal
     */
-    raw.c_iflag &= ~(ICRNL | IXON);
+    raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
 
 
     /**
@@ -52,6 +54,15 @@ void enableRawMode() {
      *   - the distinction of both these commands were relevant in the days of typewriters and "teletypes".
     */
     raw.c_oflag &= ~(OPOST);
+
+    /**
+     * Notes:
+     * - c_cflag is for control flags
+     * 
+     * (CS8) Sets character size (CS) to 8 bits per byte
+     * - not a flag but a "bitmask"
+    */
+    raw.c_cflag |= (CS8); // `~` is bitwise OR operator
 
     /**
      * Notes:
