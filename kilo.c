@@ -1,3 +1,5 @@
+/*** includes ***/
+
 # include <ctype.h>
 # include <errno.h>
 # include <stdio.h>
@@ -5,7 +7,11 @@
 # include <termios.h>
 # include <unistd.h>
 
+/*** data ***/
+
 struct termios orig_termios;
+
+/*** terminal ***/
 
 void die(const char *s) {
     // looks at global `errno` and prints a descriptive message
@@ -107,6 +113,8 @@ void enableRawMode() {
         die("tcsetattr");
     }
 }
+
+/*** init ***/
 
 int main() {
     enableRawMode();
