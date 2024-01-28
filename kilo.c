@@ -8,6 +8,6 @@ int main() {
      * (ie: they will only be read after pressing ENTER, like terminal commands)
     */
     char c;
-    while (read(STDIN_FILENO, &c, 1) == 1);
+    while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q'); // q to quit
     return 0;
 }
