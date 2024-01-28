@@ -1,4 +1,5 @@
 # include <ctype.h>
+# include <errno.h>
 # include <stdio.h>
 # include <stdlib.h>
 # include <termios.h>
@@ -6,11 +7,20 @@
 
 struct termios orig_termios;
 
+void die(const char *s) {
+    // looks at global `errno` and prints a descriptive message
+    perror(s);
+    // exit with status 1 (which indicates failure)
+    exit(1);
+}
+
 /**
  * Restore original terminal attributes
 */
 void disableRawMode() {
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+    if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1) {
+        die("tcsetattr");
+    }
 }
 
 /**
@@ -20,7 +30,9 @@ void disableRawMode() {
 */
 void enableRawMode() {
     // get terminal attributes and assign them to the original termios struct
-    tcgetattr(STDIN_FILENO, &orig_termios);
+    if(tcgetattr(STDIN_FILENO, &orig_termios) == -1) {
+        die("tcgetattr");
+    }
 
     // revert to original at exit
     atexit(disableRawMode);
@@ -91,7 +103,9 @@ void enableRawMode() {
     raw.c_cc[VTIME] = 1;
 
     // set the terminal attributes with the new value (TCSAFLUSH -> apply this after all pending outputs are written to the terminal, and discard unread inputs)
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+    if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {
+        die("tcsetattr");
+    }
 }
 
 int main() {
@@ -105,7 +119,9 @@ int main() {
     */
     while (1) {
         char c = '\0';
-        read(STDIN_FILENO, &c, 1);
+        if (read(STDIN_FILENO, &c, 1) == -1 && errno != EAGAIN) {
+            die("read");
+        }
         /**
          * Display ASCII values and character representations (if printable) for key presses.
         */
