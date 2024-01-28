@@ -29,6 +29,19 @@ void enableRawMode() {
     struct termios raw = orig_termios;
 
     /**
+     * (IXON) Disable signals which stop and start data transmission to the terminal
+     * - c_iflag is for input flags
+     * 
+     * (ICRNL) prevent translation of carriage returns (CR) (13, '\r') into newlines (10, '\n')
+     * - This is applicable to both ENTER/RETURN and Ctrl+M interestingly enough.
+     * - (10, '\n') is what Ctrl+J will output.
+    */
+    raw.c_iflag &= ~(ICRNL | IXON);
+
+    /**
+     * Notes:
+     *  - c_iflag is for local flags (“dumping ground for other state”)
+     * 
      * Turn off echoing (ECHO)
      * - You won't see your input in the terminal anymore.
      * - Disabling the ECHO flag is how password inputs are protected in the terminal (e.g. `sudo` password input).
@@ -38,8 +51,13 @@ void enableRawMode() {
      * Turn off canonical mode (ICANON)
      * - Inputs will be read byte-by-byte instead of after pressing ENTER.
      * - "q to quit" will enact immediately
+     * 
+     * Disable signals which wait for other characters to be typed before sending to terminal (IEXTEN)
+     * 
+     * Disable SIGINT (which terminates the program: Ctrl+C) and SIGSTP (which suspends the program)
+     * - disabling ISIG does the job
     */
-    raw.c_lflag &= ~(ECHO | ICANON); // `~` is bitwise NOT operator
+    raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG); // `~` is bitwise NOT operator
 
     // set the terminal attributes with the new value (TCSAFLUSH -> apply this after all pending outputs are written to the terminal, and discard unread inputs)
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
